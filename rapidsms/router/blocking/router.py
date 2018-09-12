@@ -287,30 +287,27 @@ class BlockingRouter(object):
             logger.exception(msg)
             raise MessageSendingError(msg)
         try:
-            # # (1) Profile the code
-            # import cProfile, pstats, io
-            # pr = cProfile.Profile()
-            # pr.enable()
+            # (1) Profile the code
+            import cProfile, pstats, io
+            pr = cProfile.Profile()
+            pr.enable()
             
-            # # n.b. "rtwilio.outgoing.TwilioBackend" is the backend
-            # backend.send(id_=id_, text=text, identities=identities,context=context)
+            # n.b. "rtwilio.outgoing.TwilioBackend" is the backend
+            backend.send(id_=id_, text=text, identities=identities,context=context)
  
-            # pr.disable()
-            # stg = io.StringIO()
-            # sortby = 'cumulative'
-            # ps = pstats.Stats(pr, stream=stg).sort_stats(sortby)
-            # ps.print_stats()
+            pr.disable()
+            stg = io.StringIO()
+            sortby = 'cumulative'
+            ps = pstats.Stats(pr, stream=stg).sort_stats(sortby)
+            ps.print_stats()
 
-            # # (2) Output the profile
-            # f = open('/Users/reginacompton/Desktop/out.txt', 'a')
-            # f.write('test')
-            # f.write(stg.getvalue())
-            # f.seek(0)
-            import pdb
-            pdb.set_trace()
-            # # print(stg.getvalue())
+            # (2) Output the profile
+            with open('/Users/reginacompton/Desktop/profiler.txt', 'a') as f:
+                f.write('test')
+                f.write(stg.getvalue())
+                f.seek(0)
 
-            backend.send(id_=id_, text=text, identities=identities, context=context)
+            # backend.send(id_=id_, text=text, identities=identities, context=context)
         except Exception as exc:
             msg = "%s encountered an error while sending." % backend_name
             logger.exception(msg)
