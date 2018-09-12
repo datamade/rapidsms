@@ -136,6 +136,8 @@ class BlockingRouter(object):
         continue_processing = self.process_incoming_phases(msg)
         if continue_processing:
             for msg_context in msg.responses:
+                # import pdb
+                # pdb.set_trace()
                 send(**msg_context)
 
     def process_incoming_phases(self, msg):
@@ -204,6 +206,8 @@ class BlockingRouter(object):
 
         :param msg: :class:`OutgoingMessage <rapidsms.messages.outgoing.OutgoingMessage>` object
         """
+        # import pdb
+        # pdb.set_trace()
         self.process_outgoing(msg)
 
     def process_outgoing(self, msg):
@@ -211,6 +215,8 @@ class BlockingRouter(object):
         logger.info("Outgoing: %s", msg)
         continue_sending = self.process_outgoing_phases(msg)
         if continue_sending:
+            # import pdb
+            # pdb.set_trace()
             self.backend_preparation(msg)
 
     def process_outgoing_phases(self, msg):
@@ -245,6 +251,8 @@ class BlockingRouter(object):
         grouped_identities = self.group_outgoing_identities(msg)
         for backend_name, identities in grouped_identities.items():
             try:
+                # import pdb
+                # pdb.set_trace()
                 self.send_to_backend(backend_name, msg.id, msg.text,
                                      identities, context)
             except MessageSendingError:
@@ -279,8 +287,30 @@ class BlockingRouter(object):
             logger.exception(msg)
             raise MessageSendingError(msg)
         try:
-            backend.send(id_=id_, text=text, identities=identities,
-                         context=context)
+            # # (1) Profile the code
+            # import cProfile, pstats, io
+            # pr = cProfile.Profile()
+            # pr.enable()
+            
+            # # n.b. "rtwilio.outgoing.TwilioBackend" is the backend
+            # backend.send(id_=id_, text=text, identities=identities,context=context)
+ 
+            # pr.disable()
+            # stg = io.StringIO()
+            # sortby = 'cumulative'
+            # ps = pstats.Stats(pr, stream=stg).sort_stats(sortby)
+            # ps.print_stats()
+
+            # # (2) Output the profile
+            # f = open('/Users/reginacompton/Desktop/out.txt', 'a')
+            # f.write('test')
+            # f.write(stg.getvalue())
+            # f.seek(0)
+            import pdb
+            pdb.set_trace()
+            # # print(stg.getvalue())
+
+            backend.send(id_=id_, text=text, identities=identities, context=context)
         except Exception as exc:
             msg = "%s encountered an error while sending." % backend_name
             logger.exception(msg)

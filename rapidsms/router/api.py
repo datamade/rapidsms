@@ -60,6 +60,8 @@ def send(text, connections, **kwargs):
               in :setting:`RAPIDSMS_ROUTER`.
     :rtype: :py:class:`~rapidsms.messages.outgoing.OutgoingMessage`
     """
+    # import pdb
+    # pdb.set_trace()
     if not isinstance(connections, collections.Iterable):
         connections = [connections]
     router = get_router()
