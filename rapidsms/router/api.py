@@ -3,6 +3,7 @@ from six import string_types
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.contrib.auth.hashers import check_password
 
 from rapidsms.utils.modules import import_class
 
@@ -78,13 +79,38 @@ def lookup_connections(backend, identities):
         :py:class:`~rapidsms.backends.base.BackendBase` object
     :param identities: list of identities to find associated with the backend
     :returns: List of :py:class:`~rapidsms.models.Connection` objects
+
+    ### A note on hashed identities 
+    The coordinated-entry-screening tool runs a script (`hash_identities.py `) that hashes 
+    the identities, i.e., phone numbers, of canceled, completed, or abandoned sessions.
+    
+    A user may be *returning*. If so, their identity is hashed. This function, thus: 
+    (1) finds the connection given a hashed identity – `hash_identities` uses 
+    Django's `make_password` to hash identities, and this function uses 
+    Django's `check_password` to find connections with hashed identites.
+    (2) un-hashes the identity, so that the app can communicate with Twilio.   
     """
     # imported here so that Models don't get loaded during app config
     from rapidsms.models import Backend
+    
     if isinstance(backend, string_types):
         backend, _ = Backend.objects.get_or_create(name=backend)
+    
+    # Rename Django's check_password to best describe what the code does.
+    check_identity = check_password
     connections = []
+
     for identity in identities:
-        connection, _ = backend.connection_set.get_or_create(identity=identity)
+        all_connections = backend.connection_set.all()
+        connection_list = [connection for connection in all_connections \
+                           if (check_identity(identity, connection.identity) or connection.identity==identity)]
+
+        if not connection_list:
+            connection = backend.connection_set.create(identity=identity)
+        else:
+            connection = connection_list[0]
+            connection.identity = identity
+            connection.save()
+
         connections.append(connection)
     return connections
