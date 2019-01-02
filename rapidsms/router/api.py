@@ -92,14 +92,18 @@ def lookup_connections(backend, identities):
     """
     # imported here so that Models don't get loaded during app config
     from rapidsms.models import Backend
+    
     if isinstance(backend, string_types):
         backend, _ = Backend.objects.get_or_create(name=backend)
-    connections = []
     
+    # Rename Django's check_password to best describe what the code does.
+    check_identity = check_password
+    connections = []
+
     for identity in identities:
         all_connections = backend.connection_set.all()
         connection_list = [connection for connection in all_connections \
-                           if (check_password(identity, connection.identity) or connection.identity==identity)]
+                           if (check_identity(identity, connection.identity) or connection.identity==identity)]
 
         if not connection_list:
             connection = backend.connection_set.create(identity=identity)
